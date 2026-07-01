@@ -2,8 +2,6 @@ import os
 import re
 import io
 from flask import Flask, render_template, request, jsonify, send_file
-# ❌ Removed dotenv import and load_dotenv (Render doesn’t use local .env files)
-# from dotenv import load_dotenv
 from langchain_mistralai import ChatMistralAI
 from supadata import Supadata
 import docx2txt
@@ -20,7 +18,7 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 supadata = Supadata(api_key=os.getenv('SUPADATA_API_KEY'))
 
 def get_model():
-    api_key = os.getenv("MISTRAL_API_KEY")   # ✅ Reads directly from Render
+    api_key = os.getenv("MISTRAL_API_KEY")   
     if not api_key or api_key.strip() == "" or "YOUR_API_KEY_HERE" in api_key:
         print("DEBUG: MISTRAL_API_KEY missing or invalid")
         return None
@@ -44,10 +42,6 @@ def transcribe_audio(audio_path):
         return ""
 
 def extract_video_id(url):
-    """
-    Extracts the 11-character YouTube video ID from any valid YouTube URL.
-    Works for both youtu.be and youtube.com/watch?v= formats.
-    """
     match = re.search(r"(?:v=|\/)([0-9A-Za-z_-]{11})", url)
     return match.group(1) if match else None
 
