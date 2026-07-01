@@ -1,54 +1,42 @@
  <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Universal Summarizer</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-  <!-- Header -->
+  <!-- Title in the middle -->
   <header class="header">
     <h1 class="title-text">Universal Summarizer</h1>
-    <p class="subtitle-text">Summarize YouTube videos, documents, and more</p>
   </header>
 
-  <!-- Main Content -->
+  <!-- Tabs below the title -->
   <main class="main-content">
     <div class="tabs-container">
       <div class="tabs-header">
-        <button class="tab-btn active">YouTube</button>
-        <button class="tab-btn">File Upload</button>
-        <button class="tab-btn">Text</button>
+        <button class="tab-btn active" id="youtube-tab">YouTube</button>
+        <button class="tab-btn" id="file-tab">File Upload</button>
       </div>
-      <div class="tab-content active">
-        <div class="upload-area">
-          <label class="file-label">
-            <i class="fas fa-upload"></i>
-            <span>Upload or paste a link</span>
-            <input type="file">
-          </label>
-        </div>
-        <input type="text" class="url-input" placeholder="Paste YouTube URL here">
-        <button class="btn-generate">Generate Summary</button>
-      </div>
-    </div>
 
-    <!-- Result Area -->
-    <div class="result-container">
-      <div class="summary-card">
-        <h3><i class="fas fa-align-left"></i> Summary</h3>
-        <p class="summary-text">Your summary will appear here...</p>
-        <button class="btn-download">⬇ Download</button>
+      <!-- YouTube Tab -->
+      <div class="tab-content active" id="youtube-content">
+        <input type="text" class="url-input" placeholder="Paste YouTube URL here">
+        <button class="btn-generate" id="youtube-btn">Generate Summary</button>
+      </div>
+
+      <!-- File Upload Tab -->
+      <div class="tab-content" id="file-content">
+        <input type="file" id="file-input">
+        <button class="btn-generate" id="file-btn">Generate Summary</button>
       </div>
     </div>
   </main>
 
-  <!-- Footer -->
+  <!-- Footer with your name centered -->
   <footer>
-    Made by <strong>Sai Tharun Vaddepalli</strong>
+    <p>Made by <strong>Sai Tharun Vaddepalli</strong></p>
   </footer>
 
   <!-- Floating Settings Button -->
@@ -77,17 +65,42 @@
 
   <!-- JavaScript -->
   <script>
+    const youtubeTab = document.getElementById('youtube-tab');
+    const fileTab = document.getElementById('file-tab');
+    const youtubeContent = document.getElementById('youtube-content');
+    const fileContent = document.getElementById('file-content');
+    const youtubeBtn = document.getElementById('youtube-btn');
+    const fileBtn = document.getElementById('file-btn');
     const settingsBtn = document.getElementById('settings-btn');
     const panel = document.getElementById('settings-panel');
     const closeBtn = document.getElementById('close-panel');
 
-    settingsBtn.addEventListener('click', () => {
-      panel.classList.add('active');
+    // Tab switching
+    youtubeTab.addEventListener('click', () => {
+      youtubeTab.classList.add('active');
+      fileTab.classList.remove('active');
+      youtubeContent.classList.add('active');
+      fileContent.classList.remove('active');
     });
 
-    closeBtn.addEventListener('click', () => {
-      panel.classList.remove('active');
+    fileTab.addEventListener('click', () => {
+      fileTab.classList.add('active');
+      youtubeTab.classList.remove('active');
+      fileContent.classList.add('active');
+      youtubeContent.classList.remove('active');
     });
+
+    // Buttons
+    youtubeBtn.addEventListener('click', () => {
+      alert('YouTube summary triggered!');
+    });
+    fileBtn.addEventListener('click', () => {
+      alert('File summary triggered!');
+    });
+
+    // Settings panel
+    settingsBtn.addEventListener('click', () => panel.classList.add('active'));
+    closeBtn.addEventListener('click', () => panel.classList.remove('active'));
   </script>
 </body>
 </html>
