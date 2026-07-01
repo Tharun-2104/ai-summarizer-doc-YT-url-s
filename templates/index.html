@@ -205,17 +205,23 @@
     </script>
 <script>
 const settingsBtn = document.getElementById('settings-btn');
-const sidebar = document.getElementById('settings-sidebar');
-const closeBtn = document.getElementById('close-sidebar');
+const panel = document.getElementById('settings-panel');
+const closeBtn = document.getElementById('close-panel');
 
 settingsBtn.addEventListener('click', () => {
-    sidebar.classList.add('active');
+    panel.classList.add('active');
 });
 
 closeBtn.addEventListener('click', () => {
-    sidebar.classList.remove('active');
+    panel.classList.remove('active');
+});
+
+// Optional: close when clicking outside
+window.addEventListener('click', (e) => {
+    if (e.target === panel) panel.classList.remove('active');
 });
 </script>
+
 <!-- Floating Settings Button -->
 <button id="settings-btn" class="settings-btn">
     ⚙️ Settings
