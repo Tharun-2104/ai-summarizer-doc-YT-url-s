@@ -8,3 +8,4 @@ pytube
 SpeechRecognition
 pydub
 werkzeug
+imageio-ffmpeg
