@@ -151,8 +151,9 @@ def download():
     buffer.seek(0)
     return send_file(buffer, as_attachment=True, download_name='summary.txt', mimetype='text/plain')
 
-if __name__ == '__main__':
-    # ✅ Render-compatible startup
+if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
+    print(f"Starting Flask on port {port}...")
     app.run(host="0.0.0.0", port=port)
+
 
