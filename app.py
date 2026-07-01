@@ -152,13 +152,7 @@ def download():
     return send_file(buffer, as_attachment=True, download_name='summary.txt', mimetype='text/plain')
 
 if __name__ == '__main__':
-    # 🔹 Quick test snippet for YouTube transcript
-    url = "https://youtu.be/WOzcFkld6_g?si=if6Bjy-Oj2DWk5sa"
-    video_id = extract_video_id(url)
-    print("Extracted video ID:", video_id)
-    transcript = YouTubeTranscriptApi().fetch(video_id)
-    print("First 5 lines of transcript:", transcript[:5])
-
     # ✅ Render-compatible startup
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
+
