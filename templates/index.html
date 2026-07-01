@@ -1,80 +1,205 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Universal Summarizer</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Universal Summarizer | Transform Content Instantly</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-  <!-- Title centered -->
-  <header class="header">
-    <h1 class="title-text">Universal Summarizer</h1>
-  </header>
+    <aside class="sidebar">
+        <div>
+            <h2><i class="fas fa-sliders-h"></i> Configuration</h2>
+            <form id="settings-form" style="margin-top: 2rem;">
+                <div class="form-group">
+                    <label for="summary_style">Summary Style</label>
+                    <select id="summary_style" name="summary_style">
+                        <option value="Executive Summary">Executive Summary</option>
+                        <option value="Key Takeaways (Bullets)">Key Takeaways (Bullets)</option>
+                        <option value="Detailed Analysis">Detailed Analysis</option>
+                        <option value="Short Abstract">Short Abstract</option>
+                        <option value="Action Items">Action Items</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Target Length</label>
+                    <input type="range" id="length_range" min="0" max="2" step="1" value="1">
+                    <div class="range-labels">
+                        <span>Short</span>
+                        <span>Medium</span>
+                        <span>Long</span>
+                    </div>
+                    <input type="hidden" id="length_choice" name="length_choice" value="Medium">
+                </div>
+            </form>
+        </div>
 
-  <!-- Upload areas centered below title -->
-  <main class="main-content">
-    <!-- YouTube -->
-    <div class="upload-area">
-      <input type="text" class="url-input" placeholder="Paste YouTube URL here">
-      <button class="btn-generate" id="youtube-btn">Generate Summary</button>
-    </div>
+        <div class="sidebar-info">
+            <p><i class="fas fa-info-circle"></i> <span>Supports PDF, DOCX, TXT, and YouTube URLs.</span></p>
+        </div>
+    </aside>
 
-    <!-- File Upload -->
-    <div class="upload-area">
-      <label for="file-input" class="file-label">
-        <p>Click to upload or drag and drop</p>
-        <input type="file" id="file-input" accept=".pdf,.docx,.txt">
-      </label>
-      <button class="btn-generate" id="file-btn">Generate Summary</button>
-    </div>
-  </main>
+    <main class="main-content">
+        <header class="header">
+            <h1 class="title-text">Universal Summarizer</h1>
+            <p class="subtitle-text">Harness the power of AI to transform lengthy documents and videos into concise, actionable insights in seconds.</p>
+        </header>
 
-  <!-- Footer bottom center -->
-  <footer>
-    <p>Made by <strong>Sai Tharun Vaddepalli</strong></p>
-  </footer>
+        <div class="tabs-container">
+            <div class="tabs-header">
+                <button class="tab-btn active" onclick="openTab(event, 'upload-tab')">
+                    <i class="fas fa-file-alt"></i> Documents
+                </button>
+                <button class="tab-btn" onclick="openTab(event, 'youtube-tab')">
+                    <i class="fab fa-youtube"></i> YouTube Video
+                </button>
+            </div>
 
-  <!-- Floating Settings Button -->
-  <button id="settings-btn" class="settings-btn">⚙️</button>
+            <div id="upload-tab" class="tab-content active">
+                <div class="upload-area" onclick="document.getElementById('file-input').click()">
+                    <input type="file" id="file-input" accept=".pdf,.docx,.txt" onchange="updateFileName(this)">
+                    <div class="file-label">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <div>
+                            <p style="font-weight: 600; font-size: 1.1rem;" id="file-name-display">Click to upload or drag and drop</p>
+                            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">PDF, DOCX, or TXT (Max 16MB)</p>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-generate" onclick="generateSummary('file')">
+                    <i class="fas fa-sparkles"></i> Generate Insights
+                </button>
+            </div>
 
-  <!-- Slide‑in Settings Panel -->
-  <div id="settings-panel" class="settings-panel">
-    <h2>Configuration</h2>
-    <div class="form-group">
-      <label for="summary-style">Summary Style</label>
-      <select id="summary-style">
-        <option>Executive Summary</option>
-        <option>Detailed</option>
-        <option>Bullet Points</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label for="target-length">Target Length</label>
-      <input type="range" id="target-length" min="1" max="3">
-      <div class="range-labels">
-        <span>Short</span><span>Medium</span><span>Long</span>
-      </div>
-    </div>
-    <button id="close-panel" class="close-btn">✖ Close</button>
-  </div>
+            <div id="youtube-tab" class="tab-content">
+                <div class="form-group">
+                    <label for="youtube-url">Video URL</label>
+                    <input type="text" id="youtube-url" class="url-input" placeholder="https://www.youtube.com/watch?v=...">
+                </div>
+                <button class="btn-generate" onclick="generateSummary('youtube')">
+                    <i class="fas fa-sparkles"></i> Generate Insights
+                </button>
+            </div>
+        </div>
 
-  <!-- JavaScript -->
-  <script>
-    const settingsBtn = document.getElementById('settings-btn');
-    const panel = document.getElementById('settings-panel');
-    const closeBtn = document.getElementById('close-panel');
+        <div id="error-box" class="error-box"></div>
 
-    settingsBtn.addEventListener('click', () => panel.classList.add('active'));
-    closeBtn.addEventListener('click', () => panel.classList.remove('active'));
+        <div id="loading-overlay" class="loading-overlay">
+            <div class="spinner"></div>
+            <p style="font-weight: 500;">AI is analyzing your content...</p>
+            <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.5rem;">This may take a moment depending on the length.</p>
+        </div>
 
-    // Buttons (replace alerts with Flask logic later)
-    document.getElementById('youtube-btn').addEventListener('click', () => {
-      alert('YouTube summary triggered!');
-    });
-    document.getElementById('file-btn').addEventListener('click', () => {
-      alert('File summary triggered!');
-    });
-  </script>
+        <section id="result-container" class="result-container">
+            <div class="summary-card">
+                <h3 id="result-title"><i class="fas fa-quote-left"></i> Summary</h3>
+                <div id="summary-content" class="summary-text"></div>
+                
+                <form action="/download" method="POST">
+                    <input type="hidden" id="download-content" name="content">
+                    <button type="submit" class="btn-download">
+                        <i class="fas fa-file-download"></i> Download as TXT
+                    </button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        function openTab(evt, tabName) {
+            const contents = document.querySelectorAll(".tab-content");
+            contents.forEach(content => {
+                content.classList.remove("active");
+                content.style.display = "none";
+            });
+            
+            const buttons = document.querySelectorAll(".tab-btn");
+            buttons.forEach(btn => btn.classList.remove("active"));
+            
+            document.getElementById(tabName).classList.add("active");
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.classList.add("active");
+        }
+
+        function updateFileName(input) {
+            const display = document.getElementById('file-name-display');
+            if (input.files.length > 0) {
+                display.innerText = input.files[0].name;
+                display.style.color = "var(--accent)";
+            }
+        }
+
+        const lengthRange = document.getElementById('length_range');
+        const lengthChoice = document.getElementById('length_choice');
+        const lengths = ["Very Short", "Medium", "Comprehensive"];
+        
+        lengthRange.addEventListener('input', function() {
+            lengthChoice.value = lengths[this.value];
+        });
+
+        async function generateSummary(type) {
+            const errorBox = document.getElementById('error-box');
+            const overlay = document.getElementById('loading-overlay');
+            const resultContainer = document.getElementById('result-container');
+            
+            errorBox.style.display = 'none';
+            resultContainer.style.display = 'none';
+            overlay.style.display = 'block';
+
+            const formData = new FormData();
+            formData.append('summary_style', document.getElementById('summary_style').value);
+            formData.append('length_choice', lengthChoice.value);
+            formData.append('source_type', type);
+
+            if (type === 'file') {
+                const fileInput = document.getElementById('file-input');
+                if (fileInput.files.length === 0) {
+                    showError('Please select a file to continue.');
+                    return;
+                }
+                formData.append('file', fileInput.files[0]);
+            } else {
+                const youtubeUrl = document.getElementById('youtube-url').value;
+                if (!youtubeUrl) {
+                    showError('Please provide a valid YouTube URL.');
+                    return;
+                }
+                formData.append('youtube_url', youtubeUrl);
+            }
+
+            try {
+                const response = await fetch('/summarize', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('result-title').innerHTML = `<i class="fas fa-quote-left"></i> ${data.style}`;
+                    document.getElementById('summary-content').innerText = data.summary;
+                    document.getElementById('download-content').value = data.summary;
+                    resultContainer.style.display = 'block';
+                    resultContainer.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    showError(data.error || 'Something went wrong. Please try again.');
+                }
+            } catch (error) {
+                showError('Server connection failed. Please check your internet.');
+            } finally {
+                overlay.style.display = 'none';
+            }
+        }
+
+        function showError(msg) {
+            const errorBox = document.getElementById('error-box');
+            const overlay = document.getElementById('loading-overlay');
+            errorBox.innerText = msg;
+            errorBox.style.display = 'block';
+            overlay.style.display = 'none';
+        }
+    </script>
 </body>
 </html>
