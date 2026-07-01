@@ -365,34 +365,36 @@ input[type="file"] {
     font-size: 0.9rem;
     text-align: center;
 }
+/* Floating Settings Button */
 .settings-btn {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
+    bottom: 25px;
+    right: 25px;
     background: var(--accent);
     color: white;
     border: none;
     border-radius: 50%;
-    width: 55px;
-    height: 55px;
+    width: 60px;
+    height: 60px;
     font-size: 1.4rem;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(59,130,246,0.4);
+    box-shadow: 0 6px 20px rgba(59,130,246,0.4);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     z-index: 1000;
 }
 .settings-btn:hover {
     transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(59,130,246,0.6);
+    box-shadow: 0 8px 25px rgba(59,130,246,0.6);
 }
 
+/* Slide‑in Settings Panel */
 .settings-panel {
     position: fixed;
     top: 0;
-    right: -350px;
+    right: -350px; /* hidden by default */
     width: 320px;
     height: 100%;
-    background: rgba(22,27,43,0.6);
+    background: rgba(22,27,43,0.6); /* frosted glass */
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     border-left: 1px solid rgba(255,255,255,0.1);
@@ -401,8 +403,11 @@ input[type="file"] {
     transition: right 0.5s cubic-bezier(0.25,0.8,0.25,1);
     z-index: 999;
 }
-.settings-panel.active { right: 0; }
+.settings-panel.active {
+    right: 0; /* slides in */
+}
 
+/* Close Button */
 .close-btn {
     margin-top: 2rem;
     background: transparent;
@@ -413,8 +418,7 @@ input[type="file"] {
     cursor: pointer;
     transition: 0.3s;
 }
-.close-btn:hover { background: var(--accent); color: white; }
-
-
-
-
+.close-btn:hover {
+    background: var(--accent);
+    color: white;
+}
