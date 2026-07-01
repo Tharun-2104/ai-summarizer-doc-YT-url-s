@@ -1,17 +1,13 @@
 import os
 import re
 import io
-import tempfile
 from flask import Flask, render_template, request, jsonify, send_file
 # ❌ Removed dotenv import and load_dotenv (Render doesn’t use local .env files)
 # from dotenv import load_dotenv
 from langchain_mistralai import ChatMistralAI
-from youtube_transcript_api import YouTubeTranscriptApi
+from supadata import Supadata
 import docx2txt
 import PyPDF2
-import pytube
-import speech_recognition as sr
-from pydub import AudioSegment
 from werkzeug.utils import secure_filename
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -20,6 +16,8 @@ app = Flask(__name__, static_folder="static", template_folder="templates")
 app.config['UPLOAD_FOLDER'] = os.path.join(BASE_DIR, 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+supadata = Supadata(api_key=os.getenv('SUPADATA_API_KEY'))
 
 def get_model():
     api_key = os.getenv("MISTRAL_API_KEY")   # ✅ Reads directly from Render
@@ -54,30 +52,16 @@ def extract_video_id(url):
     return match.group(1) if match else None
 
 def get_youtube_transcript(url):
-    video_id = extract_video_id(url)
-    if not video_id:
-        return None, "Invalid YouTube URL format."
-
     try:
-        transcript = YouTubeTranscriptApi().fetch(video_id)
-        text = " ".join([t.text for t in transcript])
-        return text, None
+        transcript = supadata.transcript(
+            url=url,
+            lang="en",
+            text=True,
+            mode="auto"
+        )
+        return transcript.content, None
     except Exception as e:
-        try:
-            yt = pytube.YouTube(url)
-            audio_stream = yt.streams.filter(only_audio=True).first()
-            with tempfile.TemporaryDirectory() as tmpdir:
-                audio_file_path = os.path.join(tmpdir, "audio.mp4")
-                audio_stream.download(output_path=tmpdir, filename="audio.mp4")
-                wav_file_path = os.path.join(tmpdir, "audio.wav")
-                AudioSegment.from_file(audio_file_path).export(wav_file_path, format="wav")
-                transcribed_text = transcribe_audio(wav_file_path)
-                if transcribed_text:
-                    return transcribed_text, None
-                else:
-                    return None, f"Transcript unavailable and audio transcription failed: {str(e)}"
-        except Exception as audio_err:
-            return None, f"Error fetching content: {str(e)} | Audio fallback error: {str(audio_err)}"
+        return None, f"Error fetching transcript: {str(e)}"
 
 @app.route('/')
 def index():
@@ -155,5 +139,8 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     print(f"Starting Flask on port {port}...")
     app.run(host="0.0.0.0", port=port)
+
+
+
 
 
