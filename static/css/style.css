@@ -365,3 +365,125 @@ input[type="file"] {
     font-size: 0.9rem;
     text-align: center;
 }
+
+
+/* ===== Premium Enhancements ===== */
+
+html{scroll-behavior:smooth}
+body{overflow-x:hidden;animation:pageFade .6s ease}
+@keyframes pageFade{from{opacity:0}to{opacity:1}}
+
+.sidebar,.tabs-container,.summary-card,.upload-area{
+animation:fadeUp .6s ease;
+}
+@keyframes fadeUp{
+from{opacity:0;transform:translateY(20px)}
+to{opacity:1;transform:translateY(0)}
+}
+
+.tabs-container,.summary-card{
+transition:transform .25s ease,box-shadow .25s ease;
+}
+.tabs-container:hover,.summary-card:hover{
+transform:translateY(-3px);
+box-shadow:0 18px 40px rgba(0,0,0,.35);
+}
+
+.btn-generate{
+background:linear-gradient(135deg,#3b82f6,#2563eb);
+transition:all .25s ease;
+}
+.btn-generate:hover{
+transform:translateY(-3px);
+box-shadow:0 10px 25px rgba(59,130,246,.4);
+}
+.btn-generate:active{transform:scale(.98)}
+
+.btn-download{
+transition:all .25s ease;
+}
+.btn-download:hover{
+transform:translateY(-2px);
+}
+
+.url-input,select{
+transition:all .25s ease;
+}
+
+.upload-area{
+transition:all .25s ease;
+}
+.upload-area:hover{
+transform:scale(1.01);
+}
+
+.spinner{
+animation:spin .8s linear infinite;
+}
+
+::-webkit-scrollbar{
+width:8px;
+}
+::-webkit-scrollbar-thumb{
+background:#3b82f6;
+border-radius:20px;
+}
+
+/* Tablet */
+@media(max-width:900px){
+body{
+flex-direction:column;
+}
+.sidebar{
+width:100%;
+height:auto;
+position:relative;
+border-right:none;
+border-bottom:1px solid var(--border);
+padding:1.5rem;
+}
+.main-content{
+max-width:100%;
+padding:2rem 1rem;
+}
+.title-text{
+font-size:2.6rem;
+}
+.subtitle-text{
+font-size:1rem;
+}
+.tab-content,
+.summary-card{
+padding:1.5rem;
+}
+}
+
+/* Mobile */
+@media(max-width:600px){
+.title-text{
+font-size:2rem;
+line-height:1.2;
+}
+.subtitle-text{
+font-size:.95rem;
+}
+.sidebar h2{
+font-size:1.05rem;
+}
+.tab-btn{
+padding:1rem .5rem;
+font-size:.9rem;
+}
+.upload-area{
+padding:1.4rem;
+}
+.summary-text{
+font-size:1rem;
+line-height:1.7;
+}
+.btn-download{
+width:100%;
+justify-content:center;
+}
+}
+
