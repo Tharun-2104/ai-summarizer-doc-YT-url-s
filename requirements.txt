@@ -1,7 +1,6 @@
 Flask
 python-dotenv
 langchain-mistralai
-youtube-transcript-api
 PyPDF2
 docx2txt
 pytube
@@ -9,3 +8,4 @@ SpeechRecognition
 pydub
 werkzeug
 imageio-ffmpeg
+supadata
