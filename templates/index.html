@@ -2,15 +2,194 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
     <title>AI Universal Summarizer | Transform Content Instantly</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!--
+        Mobile-only additions live here so style.css stays untouched.
+        This block only adds: the top bar + config toggle button, the
+        slide-in drawer behavior for .sidebar on small screens, the
+        overlay backdrop, and the footer. Nothing here overrides your
+        desktop styles from style.css.
+    -->
+    <style>
+        /* Top bar - only shown on mobile/tablet */
+        .mobile-topbar {
+            display: none;
+        }
+
+        /* Overlay backdrop behind the drawer */
+        .sidebar-overlay {
+            display: none;
+        }
+
+        /* Close button inside the sidebar - hidden on desktop */
+        .sidebar-close-btn {
+            display: none;
+        }
+
+        footer.app-footer {
+            text-align: center;
+            padding: 1.5rem 1rem 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border);
+        }
+
+        footer.app-footer strong {
+            color: var(--text-main);
+        }
+
+        @media (max-width: 900px) {
+            body {
+                display: block;
+            }
+
+            .mobile-topbar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                position: sticky;
+                top: 0;
+                z-index: 30;
+                padding: 1rem 1.25rem;
+                background-color: var(--bg-card);
+                border-bottom: 1px solid var(--border);
+            }
+
+            .mobile-topbar .brand {
+                font-weight: 700;
+                font-size: 1rem;
+                background: var(--gradient);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .config-toggle-btn {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                background-color: var(--bg-input);
+                border: 1px solid var(--border);
+                color: var(--text-main);
+                padding: 0.5rem 0.9rem;
+                border-radius: 999px;
+                font-size: 0.85rem;
+                font-weight: 600;
+                cursor: pointer;
+            }
+
+            .config-toggle-btn:active {
+                transform: scale(0.97);
+            }
+
+            .sidebar-overlay {
+                display: block;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.55);
+                z-index: 40;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.25s ease;
+            }
+
+            .sidebar-overlay.open {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 0;
+                right: 0;
+                height: 100%;
+                width: min(84vw, 320px);
+                z-index: 50;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+                box-shadow: -8px 0 24px rgba(0, 0, 0, 0.35);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-close-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 34px;
+                height: 34px;
+                border-radius: 50%;
+                background-color: rgba(255, 255, 255, 0.06);
+                border: 1px solid var(--border);
+                color: var(--text-main);
+                cursor: pointer;
+                font-size: 1rem;
+            }
+
+            .sidebar-close-btn:active {
+                transform: scale(0.92);
+            }
+
+            .sidebar-heading-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .main-content {
+                padding: 2rem 1.25rem 2.5rem;
+            }
+
+            .title-text {
+                font-size: 2.25rem;
+            }
+
+            .subtitle-text {
+                font-size: 1rem;
+            }
+
+            .header {
+                margin-bottom: 2.5rem;
+            }
+
+            .tab-content {
+                padding: 1.5rem 1.25rem;
+            }
+
+            .summary-card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <aside class="sidebar">
+    <!-- Mobile top bar with the Configuration toggle button -->
+    <header class="mobile-topbar">
+        <span class="brand"><i class="fas fa-wand-magic-sparkles"></i> Summarizer</span>
+        <button class="config-toggle-btn" id="open-config" type="button">
+            <i class="fas fa-sliders-h"></i> Configuration
+        </button>
+    </header>
+
+    <!-- Backdrop shown behind the drawer on mobile -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <aside class="sidebar" id="sidebar">
         <div>
-            <h2><i class="fas fa-sliders-h"></i> Configuration</h2>
+            <div class="sidebar-heading-row">
+                <h2><i class="fas fa-sliders-h"></i> Configuration</h2>
+                <button class="sidebar-close-btn" id="close-config" type="button" aria-label="Close configuration">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
             <form id="settings-form" style="margin-top: 2rem;">
                 <div class="form-group">
                     <label for="summary_style">Summary Style</label>
@@ -22,7 +201,7 @@
                         <option value="Action Items">Action Items</option>
                     </select>
                 </div>
-                
+
                 <div class="form-group">
                     <label>Target Length</label>
                     <input type="range" id="length_range" min="0" max="2" step="1" value="1">
@@ -49,17 +228,17 @@
 
         <div class="tabs-container">
             <div class="tabs-header">
-                <button class="tab-btn active" onclick="openTab(event, 'upload-tab')">
+                <button class="tab-btn active" data-tab="upload-tab" type="button">
                     <i class="fas fa-file-alt"></i> Documents
                 </button>
-                <button class="tab-btn" onclick="openTab(event, 'youtube-tab')">
+                <button class="tab-btn" data-tab="youtube-tab" type="button">
                     <i class="fab fa-youtube"></i> YouTube Video
                 </button>
             </div>
 
             <div id="upload-tab" class="tab-content active">
-                <div class="upload-area" onclick="document.getElementById('file-input').click()">
-                    <input type="file" id="file-input" accept=".pdf,.docx,.txt" onchange="updateFileName(this)">
+                <div class="upload-area" id="upload-area">
+                    <input type="file" id="file-input" accept=".pdf,.docx,.txt">
                     <div class="file-label">
                         <i class="fas fa-cloud-upload-alt"></i>
                         <div>
@@ -68,7 +247,7 @@
                         </div>
                     </div>
                 </div>
-                <button class="btn-generate" onclick="generateSummary('file')">
+                <button class="btn-generate" id="generate-file-btn" type="button">
                     <i class="fas fa-sparkles"></i> Generate Insights
                 </button>
             </div>
@@ -78,128 +257,212 @@
                     <label for="youtube-url">Video URL</label>
                     <input type="text" id="youtube-url" class="url-input" placeholder="https://www.youtube.com/watch?v=...">
                 </div>
-                <button class="btn-generate" onclick="generateSummary('youtube')">
+                <button class="btn-generate" id="generate-youtube-btn" type="button">
                     <i class="fas fa-sparkles"></i> Generate Insights
                 </button>
             </div>
-        </div>
 
-        <div id="error-box" class="error-box"></div>
+            <div id="error-box" class="error-box"></div>
 
-        <div id="loading-overlay" class="loading-overlay">
-            <div class="spinner"></div>
-            <p style="font-weight: 500;">AI is analyzing your content...</p>
-            <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.5rem;">This may take a moment depending on the length.</p>
-        </div>
-
-        <section id="result-container" class="result-container">
-            <div class="summary-card">
-                <h3 id="result-title"><i class="fas fa-quote-left"></i> Summary</h3>
-                <div id="summary-content" class="summary-text"></div>
-                
-                <form action="/download" method="POST">
-                    <input type="hidden" id="download-content" name="content">
-                    <button type="submit" class="btn-download">
-                        <i class="fas fa-file-download"></i> Download as TXT
-                    </button>
-                </form>
+            <div id="loading-overlay" class="loading-overlay">
+                <div class="spinner"></div>
+                <p style="font-weight: 500;">AI is analyzing your content...</p>
+                <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.5rem;">This may take a moment depending on the length.</p>
             </div>
-        </section>
+
+            <section id="result-container" class="result-container">
+                <div class="summary-card">
+                    <h3 id="result-title"><i class="fas fa-quote-left"></i> Summary</h3>
+                    <div id="summary-content" class="summary-text"></div>
+
+                    <form action="/download" method="POST">
+                        <input type="hidden" id="download-content" name="content">
+                        <button type="submit" class="btn-download">
+                            <i class="fas fa-file-download"></i> Download as TXT
+                        </button>
+                    </form>
+                </div>
+            </section>
+        </div>
     </main>
 
+    <footer class="app-footer">
+        Made By <strong>Sai Tharun Vaddepalli</strong>
+    </footer>
+
     <script>
-        function openTab(evt, tabName) {
-            const contents = document.querySelectorAll(".tab-content");
-            contents.forEach(content => {
-                content.classList.remove("active");
-                content.style.display = "none";
+        (function () {
+            "use strict";
+
+            /* ---------- Mobile drawer open/close ---------- */
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const openBtn = document.getElementById('open-config');
+            const closeBtn = document.getElementById('close-config');
+
+            function openSidebar() {
+                sidebar.classList.add('open');
+                overlay.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+
+            openBtn.addEventListener('click', openSidebar);
+            closeBtn.addEventListener('click', closeSidebar);
+            overlay.addEventListener('click', closeSidebar);
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') closeSidebar();
             });
-            
-            const buttons = document.querySelectorAll(".tab-btn");
-            buttons.forEach(btn => btn.classList.remove("active"));
-            
-            document.getElementById(tabName).classList.add("active");
-            document.getElementById(tabName).style.display = "block";
-            evt.currentTarget.classList.add("active");
-        }
 
-        function updateFileName(input) {
-            const display = document.getElementById('file-name-display');
-            if (input.files.length > 0) {
-                display.innerText = input.files[0].name;
-                display.style.color = "var(--accent)";
-            }
-        }
+            /* ---------- Tabs ---------- */
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
 
-        const lengthRange = document.getElementById('length_range');
-        const lengthChoice = document.getElementById('length_choice');
-        const lengths = ["Very Short", "Medium", "Comprehensive"];
-        
-        lengthRange.addEventListener('input', function() {
-            lengthChoice.value = lengths[this.value];
-        });
-
-        async function generateSummary(type) {
-            const errorBox = document.getElementById('error-box');
-            const overlay = document.getElementById('loading-overlay');
-            const resultContainer = document.getElementById('result-container');
-            
-            errorBox.style.display = 'none';
-            resultContainer.style.display = 'none';
-            overlay.style.display = 'block';
-
-            const formData = new FormData();
-            formData.append('summary_style', document.getElementById('summary_style').value);
-            formData.append('length_choice', lengthChoice.value);
-            formData.append('source_type', type);
-
-            if (type === 'file') {
-                const fileInput = document.getElementById('file-input');
-                if (fileInput.files.length === 0) {
-                    showError('Please select a file to continue.');
-                    return;
-                }
-                formData.append('file', fileInput.files[0]);
-            } else {
-                const youtubeUrl = document.getElementById('youtube-url').value;
-                if (!youtubeUrl) {
-                    showError('Please provide a valid YouTube URL.');
-                    return;
-                }
-                formData.append('youtube_url', youtubeUrl);
-            }
-
-            try {
-                const response = await fetch('/summarize', {
-                    method: 'POST',
-                    body: formData
+            tabButtons.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    tabContents.forEach(function (c) { c.classList.remove('active'); });
+                    tabButtons.forEach(function (b) { b.classList.remove('active'); });
+                    document.getElementById(btn.dataset.tab).classList.add('active');
+                    btn.classList.add('active');
+                    hideError();
                 });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    document.getElementById('result-title').innerHTML = `<i class="fas fa-quote-left"></i> ${data.style}`;
-                    document.getElementById('summary-content').innerText = data.summary;
-                    document.getElementById('download-content').value = data.summary;
-                    resultContainer.style.display = 'block';
-                    resultContainer.scrollIntoView({ behavior: 'smooth' });
-                } else {
-                    showError(data.error || 'Something went wrong. Please try again.');
-                }
-            } catch (error) {
-                showError('Server connection failed. Please check your internet.');
-            } finally {
-                overlay.style.display = 'none';
-            }
-        }
+            });
 
-        function showError(msg) {
+            /* ---------- Length slider ---------- */
+            const lengthRange = document.getElementById('length_range');
+            const lengthChoice = document.getElementById('length_choice');
+            const lengths = ["Very Short", "Medium", "Comprehensive"];
+
+            lengthRange.addEventListener('input', function () {
+                lengthChoice.value = lengths[this.value];
+            });
+
+            /* ---------- File upload ---------- */
+            const uploadArea = document.getElementById('upload-area');
+            const fileInput = document.getElementById('file-input');
+            const fileNameDisplay = document.getElementById('file-name-display');
+
+            uploadArea.addEventListener('click', function () {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', function () {
+                if (fileInput.files.length > 0) {
+                    fileNameDisplay.textContent = fileInput.files[0].name;
+                    fileNameDisplay.style.color = "var(--accent)";
+                }
+            });
+
+            ['dragover', 'dragenter'].forEach(function (evt) {
+                uploadArea.addEventListener(evt, function (e) {
+                    e.preventDefault();
+                    uploadArea.style.borderColor = "var(--accent)";
+                });
+            });
+            ['dragleave', 'drop'].forEach(function (evt) {
+                uploadArea.addEventListener(evt, function (e) {
+                    e.preventDefault();
+                    uploadArea.style.borderColor = "var(--border)";
+                });
+            });
+            uploadArea.addEventListener('drop', function (e) {
+                if (e.dataTransfer.files.length > 0) {
+                    fileInput.files = e.dataTransfer.files;
+                    fileNameDisplay.textContent = e.dataTransfer.files[0].name;
+                    fileNameDisplay.style.color = "var(--accent)";
+                }
+            });
+
+            /* ---------- Generate ---------- */
             const errorBox = document.getElementById('error-box');
-            const overlay = document.getElementById('loading-overlay');
-            errorBox.innerText = msg;
-            errorBox.style.display = 'block';
-            overlay.style.display = 'none';
-        }
+            const loadingOverlay = document.getElementById('loading-overlay');
+            const resultContainer = document.getElementById('result-container');
+            const generateFileBtn = document.getElementById('generate-file-btn');
+            const generateYoutubeBtn = document.getElementById('generate-youtube-btn');
+
+            function hideError() {
+                errorBox.style.display = 'none';
+                errorBox.textContent = '';
+            }
+
+            function showError(msg) {
+                errorBox.textContent = msg;
+                errorBox.style.display = 'block';
+                loadingOverlay.style.display = 'none';
+                setButtonsDisabled(false);
+            }
+
+            function setButtonsDisabled(disabled) {
+                generateFileBtn.disabled = disabled;
+                generateYoutubeBtn.disabled = disabled;
+            }
+
+            async function generateSummary(type) {
+                hideError();
+                resultContainer.style.display = 'none';
+
+                const formData = new FormData();
+                formData.append('summary_style', document.getElementById('summary_style').value);
+                formData.append('length_choice', lengthChoice.value);
+                formData.append('source_type', type);
+
+                if (type === 'file') {
+                    if (fileInput.files.length === 0) {
+                        showError('Please select a file to continue.');
+                        return;
+                    }
+                    formData.append('file', fileInput.files[0]);
+                } else {
+                    const youtubeUrl = document.getElementById('youtube-url').value.trim();
+                    if (!youtubeUrl) {
+                        showError('Please provide a valid YouTube URL.');
+                        return;
+                    }
+                    formData.append('youtube_url', youtubeUrl);
+                }
+
+                setButtonsDisabled(true);
+                loadingOverlay.style.display = 'block';
+
+                try {
+                    const response = await fetch('/summarize', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    let data;
+                    try {
+                        data = await response.json();
+                    } catch (parseErr) {
+                        throw new Error('Unexpected response from server.');
+                    }
+
+                    if (response.ok) {
+                        document.getElementById('result-title').innerHTML =
+                            '<i class="fas fa-quote-left"></i> ' + (data.style || 'Summary');
+                        document.getElementById('summary-content').textContent = data.summary || '';
+                        document.getElementById('download-content').value = data.summary || '';
+                        resultContainer.style.display = 'block';
+                        resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    } else {
+                        showError(data.error || 'Something went wrong. Please try again.');
+                    }
+                } catch (error) {
+                    showError('Server connection failed. Please check your internet.');
+                } finally {
+                    loadingOverlay.style.display = 'none';
+                    setButtonsDisabled(false);
+                }
+            }
+
+            generateFileBtn.addEventListener('click', function () { generateSummary('file'); });
+            generateYoutubeBtn.addEventListener('click', function () { generateSummary('youtube'); });
+        })();
     </script>
 </body>
 </html>
